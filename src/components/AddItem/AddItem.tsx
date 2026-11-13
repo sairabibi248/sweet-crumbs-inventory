@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm, type SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { ItemData } from "../../Hooks/useInventory";
+import { itemSchema, type ItemFormFields } from "../../schemas/itemSchema";
 
 type AddItemProps = {
   onClose: () => void;
@@ -23,46 +26,33 @@ const categories: string[] = [
  * @param {function} props.onSave - Receives the new product data when "Add item" is clicked
  */
 const AddItem = ({ onClose, onSave }: AddItemProps) => {
-  const [title, setTitle] = useState<string>("");
-  const [category, setCategory] = useState<string>("Cakes");
-  const [price, setPrice] = useState<string>("");
-  const [quantity, setQuantity] = useState<string>("");
-  const [image, setImage] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<ItemFormFields>({
+    resolver: zodResolver(itemSchema),
+    mode: "onChange",
+    defaultValues: {
+      image: "",
+      title: "",
+      category: "Cakes",
+    },
+  });
+
+  const image = watch("image");
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
-      setError("");
+      setValue("image", URL.createObjectURL(file), { shouldValidate: true });
     }
   };
 
-  const handleAdd = () => {
-    if (image === "") {
-      setError("Upload a product image");
-      return;
-    }
-    if (title.trim() === "") {
-      setError("Enter a product name");
-      return;
-    }
-    if (price === "" || Number(price) <= 0) {
-      setError("Enter a valid price");
-      return;
-    }
-    if (quantity === "" || Number(quantity) < 0) {
-      setError("Enter a valid quantity");
-      return;
-    }
-
-    onSave({
-      title: title.trim(),
-      category: category,
-      price: Number(price),
-      quantity: Number(quantity),
-      image: image,
-    });
+  const onSubmit: SubmitHandler<ItemFormFields> = (data) => {
+    onSave(data);
   };
 
   return (
@@ -70,7 +60,8 @@ const AddItem = ({ onClose, onSave }: AddItemProps) => {
       className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-[rgba(0,0,0,0.4)] z-50 py-7.5 px-5"
       onClick={onClose}
     >
-      <div
+      <form
+        onSubmit={handleSubmit(onSubmit)}
         className="bg-[#fffafc] w-100 max-w-[90%] rounded-xl p-6 flex flex-col gap-3.5"
         onClick={(e) => e.stopPropagation()}
       >
@@ -98,26 +89,27 @@ const AddItem = ({ onClose, onSave }: AddItemProps) => {
             />
           </label>
         </div>
+        {errors.image && (
+          <p className="text-[13px] text-[#b91c1c]">{errors.image.message}</p>
+        )}
 
         <label className="w-full flex flex-col gap-1 text-xs font-bold text-[#7a5c43]">
           Name
           <input
+            {...register("title")}
             className="w-full py-2 px-2.5 text-sm font-normal border border-[#fbcfe8] rounded-md bg-white text-[#1f2937] outline-none focus:border-[#db2777]"
             placeholder=" Blueberry Muffin"
-            value={title}
-            onChange={(e) => {
-              setTitle(e.target.value);
-              setError("");
-            }}
           />
         </label>
+        {errors.title && (
+          <p className="text-[13px] text-[#b91c1c]">{errors.title.message}</p>
+        )}
 
         <label className="w-full flex flex-col gap-1 text-xs font-bold text-[#7a5c43]">
           Category
           <select
+            {...register("category")}
             className="w-full py-2 px-2.5 text-sm font-normal border border-[#fbcfe8] rounded-md bg-white text-[#1f2937] outline-none focus:border-[#db2777]"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
           >
             {categories.map((cat) => (
               <option key={cat} value={cat}>
@@ -126,40 +118,39 @@ const AddItem = ({ onClose, onSave }: AddItemProps) => {
             ))}
           </select>
         </label>
+        {errors.category && (
+          <p className="text-[13px] text-[#b91c1c]">{errors.category.message}</p>
+        )}
 
         <div className="flex gap-3">
           <label className="w-full flex flex-col gap-1 text-xs font-bold text-[#7a5c43]">
             Price (Rs)
             <input
+              {...register("price", { valueAsNumber: true })}
               className="w-full py-2 px-2.5 text-sm font-normal border border-[#fbcfe8] rounded-md bg-white text-[#1f2937] outline-none focus:border-[#db2777]"
               type="number"
               min="1"
               placeholder="0"
-              value={price}
-              onChange={(e) => {
-                setPrice(e.target.value);
-                setError("");
-              }}
             />
           </label>
 
           <label className="w-full flex flex-col gap-1 text-xs font-bold text-[#7a5c43]">
             Quantity
             <input
+              {...register("quantity", { valueAsNumber: true })}
               className="w-full py-2 px-2.5 text-sm font-normal border border-[#fbcfe8] rounded-md bg-white text-[#1f2937] outline-none focus:border-[#db2777]"
               type="number"
               min="0"
               placeholder="0"
-              value={quantity}
-              onChange={(e) => {
-                setQuantity(e.target.value);
-                setError("");
-              }}
             />
           </label>
         </div>
-
-        {error && <p className="text-[13px] text-[#b91c1c]">{error}</p>}
+        {errors.price && (
+          <p className="text-[13px] text-[#b91c1c]">{errors.price.message}</p>
+        )}
+        {errors.quantity && (
+          <p className="text-[13px] text-[#b91c1c]">{errors.quantity.message}</p>
+        )}
 
         <div className="flex justify-end gap-2.5">
           <button
@@ -170,14 +161,13 @@ const AddItem = ({ onClose, onSave }: AddItemProps) => {
             Cancel
           </button>
           <button
-            type="button"
+            type="submit"
             className="bg-[#b85e83] text-white border border-[#b85e83] py-2 px-4.5 rounded-md font-bold text-[13px] cursor-pointer hover:bg-[#a04a6f]"
-            onClick={handleAdd}
           >
             Add item
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };
