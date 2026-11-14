@@ -176,7 +176,7 @@ export const useInventory = () => {
    * Recalculated only when items, search text or category change.
    * Returned as "items" and shown as cards by ProductItems.jsx.
    *
-   * Search bar
+   * Search bar/Category
    * @type {Item[]}
    */
 
@@ -210,9 +210,7 @@ export const useInventory = () => {
       totalProducts: items.length,
       inStock: items.filter((item) => item.quantity >= LowStockLimit).length,
       soldOut: items.filter((item) => item.quantity === 0).length,
-      lowStock: items.filter(
-        (item) => item.quantity > 0 && item.quantity < LowStockLimit,
-      ).length,
+      lowStock: items.filter((item) => item.quantity > 0 && item.quantity < LowStockLimit).length,
     };
   }, [items]);
 

@@ -48,6 +48,7 @@ const Dashboard = () => {
    * True when the "Add item" popup is open, false when it is closed.
    * Set to true by the "+ Add Item" button in Header,
    * and back to false when the popup is closed or the item is added.
+   * for add item
    */
   const [isAdding, setIsAdding] = useState<boolean>(false);
 
